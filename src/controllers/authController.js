@@ -1,6 +1,6 @@
 const supabase = require('../config/supabase')
 
-// SIGNUP
+// ================= SIGNUP =================
 exports.signup = async (req, res) => {
   try {
     const { email, password, full_name } = req.body
@@ -11,17 +11,37 @@ exports.signup = async (req, res) => {
       password
     })
 
-    if (error) return res.status(400).json({ error: error.message })
+    if (error) {
+      return res.status(400).json({ error: error.message })
+    }
 
-    // 2️⃣ Create profile row
-    await supabase.from('profiles').insert({
-      id: data.user.id,
-      full_name
-    })
+    // Safety check
+    if (!data.user) {
+      return res.status(400).json({ error: "User not returned from Supabase" })
+    }
+
+    // 2️⃣ Create profile row in profiles table
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([
+        {
+          id: data.user.id,      // MUST match auth.users id
+          email: email,
+          full_name: full_name,
+          created_at: new Date()
+        }
+      ])
+
+    if (profileError) {
+      return res.status(400).json({
+        error: "User created but profile failed",
+        details: profileError.message
+      })
+    }
 
     res.json({
-      message: "User created successfully",
-      user: data.user
+      message: "User + Profile created successfully",
+      user_id: data.user.id
     })
 
   } catch (err) {
@@ -29,7 +49,8 @@ exports.signup = async (req, res) => {
   }
 }
 
-// LOGIN
+
+// ================= LOGIN =================
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body
@@ -39,11 +60,15 @@ exports.login = async (req, res) => {
       password
     })
 
-    if (error) return res.status(400).json({ error: error.message })
+    if (error) {
+      return res.status(400).json({ error: error.message })
+    }
 
     res.json({
       message: "Login successful",
-      session: data.session
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      user: data.user
     })
 
   } catch (err) {
