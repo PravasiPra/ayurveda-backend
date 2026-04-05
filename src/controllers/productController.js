@@ -6,7 +6,7 @@ exports.getProducts = async (req, res) => {
     // 1️⃣ Get all products
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('*')
+      .select(`*,product_categories (id,name)`)
 
     if (productsError) throw productsError
 
@@ -46,7 +46,7 @@ exports.getProducts = async (req, res) => {
       return data.publicUrl
     })
 
-    // GROUP PRODUCTS BY CATEGORY 🔥
+    // GROUP PRODUCTS BY CATEGORY
     const categoryProducts = {}
 
     products.forEach(product => {
