@@ -3,12 +3,36 @@ const supabase = require('../config/supabase')
 // GET ALL PRODUCTS AND BEST SELLING PRODUCTS
 exports.getProducts = async (req, res) => {
   try {
-    // 1️⃣ Get all products
-    const { data: products, error: productsError } = await supabase
+
+    // Get all products with category
+    const { data: rawProducts, error: productsError } = await supabase
       .from('products')
       .select(`*,product_categories!products_category_id_fkey (id,name)`)
 
     if (productsError) throw productsError
+
+    // Transform images columns → images array
+    const products = rawProducts.map(product => {
+
+      const images = [
+        product.image_url,
+        product.image_url2,
+        product.image_url3,
+        product.image_url4,
+        product.image_url5
+      ].filter(Boolean)   // removes null / empty values
+
+      // remove old columns and create new object
+      return {
+        ...product,
+        images,
+        image_url: undefined,
+        image_url2: undefined,
+        image_url3: undefined,
+        image_url4: undefined,
+        image_url5: undefined
+      }
+    })
 
     // 2️⃣ Get best sellers from VIEW
     const { data: bestSellingRaw, error: bestError } = await supabase
