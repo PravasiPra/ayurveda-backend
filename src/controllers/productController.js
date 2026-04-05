@@ -18,7 +18,7 @@ exports.getProducts = async (req, res) => {
 
     if (bestError) throw bestError
 
-    // 3️⃣ Merge product details with sales count
+    // Merge product details with sales count
     const bestSelling = products
       .filter(p => bestSellingRaw.some(b => b.product_id === p.id))
       .map(product => {
@@ -29,8 +29,26 @@ exports.getProducts = async (req, res) => {
         }
       })
 
+       // 3️⃣ Get banner images from storage bucket
+    const { data: files, error: bannerError } = await supabase
+      .storage
+      .from('banners')
+      .list('', { limit: 100 })
+
+    if (bannerError) throw bannerError
+
+    const banners = files.map(file => {
+      const { data } = supabase
+        .storage
+        .from('banners')
+        .getPublicUrl(file.name)
+
+      return data.publicUrl
+    })
+
     // 4️⃣ Final response
     res.json({
+      banners,
       products,
       bestSelling
     })
