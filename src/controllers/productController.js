@@ -46,11 +46,25 @@ exports.getProducts = async (req, res) => {
       return data.publicUrl
     })
 
+    // GROUP PRODUCTS BY CATEGORY 🔥
+    const categoryProducts = {}
+
+    products.forEach(product => {
+      const categoryName = product.product_categories?.name || "Other"
+
+      if (!categoryProducts[categoryName]) {
+        categoryProducts[categoryName] = []
+      }
+
+      categoryProducts[categoryName].push(product)
+    })
+
     // 4️⃣ Final response
     res.json({
       banners,
       products,
-      bestSelling
+      bestSelling,
+      categoryProducts
     })
 
   } catch (err) {
