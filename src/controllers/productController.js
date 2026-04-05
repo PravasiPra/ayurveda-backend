@@ -3,7 +3,6 @@ const supabase = require('../config/supabase')
 // GET ALL PRODUCTS AND BEST SELLING PRODUCTS
 exports.getProducts = async (req, res) => {
   try {
-
     // 1️⃣ Get all products
     const { data: products, error: productsError } = await supabase
       .from('products')
@@ -11,40 +10,29 @@ exports.getProducts = async (req, res) => {
 
     if (productsError) throw productsError
 
-    // 2️⃣ Get best selling products (SQL aggregation)
+    // 2️⃣ Get best sellers from VIEW
     const { data: bestSellingRaw, error: bestError } = await supabase
-      .from('order_items')
-      .select(`
-        product_id,
-        product_name,
-        total_sold:quantity.sum()
-      `)
-      .group('product_id, product_name')
-      .order('total_sold', { ascending: false })
+      .from('best_selling_products')
+      .select('*')
       .limit(5)
 
     if (bestError) throw bestError
 
-    // 3️⃣ Get full product details of best sellers
-    const bestSellingIds = bestSellingRaw.map(p => p.product_id)
+    // 3️⃣ Merge product details with sales count
+    const bestSelling = products
+      .filter(p => bestSellingRaw.some(b => b.product_id === p.id))
+      .map(product => {
+        const stats = bestSellingRaw.find(b => b.product_id === product.id)
+        return {
+          ...product,
+          total_sold: stats.total_sold
+        }
+      })
 
-    const bestSellingProducts = products.filter(p =>
-      bestSellingIds.includes(p.id)
-    )
-
-    // 4️⃣ Attach sold count to product object
-    const bestSellingFinal = bestSellingProducts.map(product => {
-      const stats = bestSellingRaw.find(p => p.product_id === product.id)
-      return {
-        ...product,
-        total_sold: stats.total_sold
-      }
-    })
-
-    // 5️⃣ Final response
+    // 4️⃣ Final response
     res.json({
       products,
-      bestSelling: bestSellingFinal
+      bestSelling
     })
 
   } catch (err) {
