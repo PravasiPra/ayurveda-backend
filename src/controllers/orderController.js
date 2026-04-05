@@ -33,6 +33,7 @@ exports.checkout = async (req, res) => {
     const orderItems = cartItems.map(item => ({
       order_id: order.id,
       product_id: item.products.id,
+      product_name: product.name,
       quantity: item.quantity,
       price: item.products.price
     }))
