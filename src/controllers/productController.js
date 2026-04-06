@@ -7,7 +7,7 @@ exports.getProducts = async (req, res) => {
     // Get all products with category
     const { data: rawProducts, error: productsError } = await supabase
       .from('products')
-      .select(`*,product_categories!products_category_id_fkey (id,name)`)
+      .select(`*,category:product_categories!products_category_id_fkey (id,name)`)
 
     if (productsError) throw productsError
 
@@ -74,7 +74,7 @@ exports.getProducts = async (req, res) => {
     const categoryProducts = {}
 
     products.forEach(product => {
-      const categoryName = product.product_categories?.name || "Other"
+      const categoryName = product.category?.name || "Other"
 
       if (!categoryProducts[categoryName]) {
         categoryProducts[categoryName] = []
