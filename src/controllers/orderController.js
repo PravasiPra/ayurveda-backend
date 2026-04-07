@@ -8,7 +8,7 @@ exports.checkout = async (req, res) => {
     // 1️⃣ Get cart items
     const { data: cartItems, error: cartError } = await supabase
       .from('cart_items')
-      .select(`quantity, products(price, id)`)
+      .select(`quantity, products(id, name, price)`)
       .eq('user_id', user_id)
 
     if (cartError) return res.status(400).json(cartError)
@@ -33,7 +33,7 @@ exports.checkout = async (req, res) => {
     const orderItems = cartItems.map(item => ({
       order_id: order.id,
       product_id: item.products.id,
-      product_name: product.name,
+      product_name: item.product.name,
       quantity: item.quantity,
       price: item.products.price
     }))

@@ -1,11 +1,11 @@
 const supabase = require('../config/supabase')
 
-// ================= SIGNUP =================
+// SIGNUP
 exports.signup = async (req, res) => {
   try {
     const { email, password, full_name } = req.body
 
-    // 1️⃣ Create user in Supabase Auth
+    // Create user in Supabase Auth
     const { data, error } = await supabase.auth.signUp({
       email,
       password
@@ -20,7 +20,7 @@ exports.signup = async (req, res) => {
       return res.status(400).json({ error: "User not returned from Supabase" })
     }
 
-    // 2️⃣ Create profile row in profiles table
+    // Create profile row in profiles table
     const { error: profileError } = await supabase
       .from('profiles')
       .insert([
@@ -50,7 +50,7 @@ exports.signup = async (req, res) => {
 }
 
 
-// ================= LOGIN =================
+// LOGIN
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body
