@@ -7,9 +7,16 @@ exports.checkout = async (req, res) => {
 
     // 1️⃣ Get cart items
     const { data: cartItems, error: cartError } = await supabase
-      .from('cart_items')
-      .select(`quantity, products(id, name, price)`)
-      .eq('user_id', user_id)
+  .from('cart_items')
+  .select(`
+    quantity,
+    products!cart_items_product_id_fkey (
+      id,
+      name,
+      price
+    )
+  `)
+  .eq('user_id', user_id)
 
     if (cartError) return res.status(400).json(cartError)
     if (!cartItems.length) return res.status(400).json({ error: "Cart is empty" })
