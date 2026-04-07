@@ -37,13 +37,15 @@ exports.checkout = async (req, res) => {
     if (orderError) return res.status(400).json(orderError)
 
     // 4️⃣ Insert order items
-    const orderItems = cartItems.map(item => ({
-      order_id: order.id,
-      product_id: item.products.id,
-      product_name: item.product.name,
-      quantity: item.quantity,
-      price: item.products.price
-    }))
+    const orderItems = cartItems
+  .filter(item => item.products) // remove broken rows
+  .map(item => ({
+    order_id: order.id,
+    product_id: item.products.id,
+    product_name: item.products.name,
+    quantity: item.quantity,
+    price: item.products.price
+  }))
 
     await supabase.from('order_items').insert(orderItems)
 
